@@ -19,6 +19,6 @@ Zorse
 
 Developers
 =============================
-	[@hugo_dc](http://twitter.com/hugo_dc)
-	[email](hugo.delacruz@mazlibre.com)
+	Twitter - http://twitter.com/hugo_dc
+	Email: hugo.delacruz@mazlibre.com
 
