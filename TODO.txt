@@ -1,0 +1,14 @@
+Bugs actuales:
+	- Cuando guardas un nuevo servidor, este no se actualiza en la lista de servidores ni en la pantalla principal.
+	
+Para hacer:
+	- Al hacer doble click en una variable te lleve a su definicion
+	- Doble click en una tabla o tipo de datos, descargue la definicion
+	- Pretty Printer, auto-tabs
+	- Esquema de color para la sintaxis
+	- Agregar soporte para SAPRouter
+	- Usar Gettext para traducciones
+	
+	
+	
+	

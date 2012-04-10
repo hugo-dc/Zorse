@@ -13,12 +13,11 @@ Zorse
 	Pyinstaller
 
 ## SAP RFC Connections:
-- [pysap](http://pysaprfc.sourceforge.net/)
 - [easysap](https://github.com/hugo-dc/easysap) 
     
 
 Developers
-=============================
+==========
 	Twitter - http://twitter.com/hugo_dc
 	Email: hugo.delacruz@mazlibre.com
 
