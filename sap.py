@@ -2,12 +2,13 @@ import easysap
     
 import os    
 import security
+
+
 #-----------------------------------------------------------------------
 # SAP
-
 def getConnString(id, name, ip, sysnr, client, user, passwd):
     passwd = security.decode(passwd)
-    return easysap.getConnString(id, name, ip, sysnr, client, user, passwd)    
+    return easysap.getConnString(ip, sysnr, client, user, passwd)    
     
     
 
@@ -191,7 +192,7 @@ def testServerConfig(id, name, ip, sysnr, client, user, passwd):
     z.write(ztest)
     z.close()
     
-    server = sap.SapWork()
+    server = easysap.SAPInstance()
     server.set_config('ASHOST='+ip+' SYSNR='+sysnr+' CLIENT='+client+' USER='+user+' PASSWD='+passwd)
     
     
