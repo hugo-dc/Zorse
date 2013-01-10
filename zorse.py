@@ -33,8 +33,10 @@ class ExecutionProgress(wx.Frame):
         
     
 class Zorse(wx.App):
-    code = None
-    def init(self, code = None):
+    fname = 'Untitled'
+    code  = None
+    def init(self, fname = None, code = None):
+        self.fname = fname
         self.code = code 
         print code
         
@@ -47,7 +49,8 @@ class Zorse(wx.App):
         wx.Yield()
         
         
-        self.frame = gui.MainWindow.MainWindow(parent=None, id=-1, title='Zorse - ABAP Code Editor', code =code)
+        fname = 'Zorse - ' + self.fname
+        self.frame = gui.MainWindow.MainWindow(parent=None, id=-1, title=fname, code =code)
         self.frame.Maximize()
         self.frame.Show(True)
         self.SetTopWindow(self.frame)
@@ -59,6 +62,7 @@ class Zorse(wx.App):
 
 
 if __name__ == '__main__':
+    name = 'Untitled'
     code = None
     if len(sys.argv) > 1:
         in_fi = sys.argv[1]
@@ -66,8 +70,9 @@ if __name__ == '__main__':
             in_file = open(in_fi, 'r')
             code = in_file.read()
             in_file.close()
+            fname = in_fi			
     try:
-        App = Zorse(code)
+        App = Zorse(name, code)
         App.MainLoop()
     except:
         traceback.print_exc(file=open('exceptions', 'w'))

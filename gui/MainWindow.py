@@ -3,18 +3,19 @@ Created on 09/04/2012
 
 @author: hugo.delacruz
 '''
+
+
 import wx
 import os
-from datetime import datetime
 import webbrowser
-
+from datetime import datetime
 import sap
 import Messages
 import Menues
 import Toolbars
 import Config
 import db
-import ConfigWindow
+#import ConfigWindow
 import AboutWindow
 
 #-----------------------------------------------------------------------
@@ -58,6 +59,7 @@ class MainWindow(wx.Frame):
         
         self.f = wx.Font(12, wx.MODERN, wx.NORMAL, wx.NORMAL)
         self.f2 = wx.Font(12, wx.MODERN, wx.ITALIC, wx.NORMAL)
+        self.f3 = wx.Font(12, wx.MODERN, wx.NORMAL, wx.BOLD)
 
         #Panel
         
@@ -70,7 +72,7 @@ class MainWindow(wx.Frame):
 
         l_sd = wx.StaticText(panel, -1, "Servidor Destino:", pos=(15, 85))
 
-        self.t_pr = wx.TextCtrl(panel,-1, "", pos=(100, 20),  size=(200, -1))
+        self.t_pr  = wx.TextCtrl(panel,-1, "", pos=(100, 20),  size=(200, -1))
         self.t_pr.SetInsertionPoint(0)
         
         for server in self.servers:
@@ -104,7 +106,7 @@ class MainWindow(wx.Frame):
         box2.Add(self.outtext, 1, flag=wx.EXPAND)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(panel, 0, wx.EXPAND)
+        #box.Add(panel, 0, wx.EXPAND)
         box.Add(box2, 1, wx.EXPAND)
         
         self.SetSizer(box)
@@ -123,7 +125,7 @@ class MainWindow(wx.Frame):
             ix = self.code[start:end].upper().find(keyword.upper())
             if ix >=0:
                 if ix == 0 or self.code[start+ix-1] in [' ', '\t']:
-                    self.codetext.SetStyle(ix+start, ix + start + len(keyword), wx.TextAttr("blue", "white", self.f))
+                    self.codetext.SetStyle(ix+start, ix + start + len(keyword), wx.TextAttr("orange", "white", self.f3))
                     
         for number in numbers:
             ix = self.code[start:end].find(number)
@@ -140,7 +142,7 @@ class MainWindow(wx.Frame):
             if ix>=0:
                 iy = self.code[start+ix+1:end].find("'")
                 if iy>=0:
-                    self.codetext.SetStyle(start+ix, start+ix+iy+2, wx.TextAttr("forest green", "white", self.f))
+                    self.codetext.SetStyle(start+ix, start+ix+iy+2, wx.TextAttr("blue", "white", self.f))
                     start += ix + iy + 2
                     
                     st.append((stmp+ix,stmp+ix+iy+1))
@@ -161,12 +163,12 @@ class MainWindow(wx.Frame):
                     break
                     
             if not found:
-                self.codetext.SetStyle(start+ix, end, wx.TextAttr("gray", "white", self.f2))
+                self.codetext.SetStyle(start+ix, end, wx.TextAttr("forest green", "white", self.f2))
             
         
         if len(self.code) > start:
             if self.code[start] == '*':
-                self.codetext.SetStyle(start, end, wx.TextAttr("gray", "white", self.f2))
+                self.codetext.SetStyle(start, end, wx.TextAttr("forest green", "white", self.f2))
                 
         
         
@@ -184,7 +186,7 @@ class MainWindow(wx.Frame):
             self.SyntaxHighlight(start+s, s+tot_l+1)
             start = tot_l
             
-            
+
     def ParametersSearch(self):
         start = 0
         while start < len(self.code):
@@ -217,17 +219,25 @@ class MainWindow(wx.Frame):
     def OnText(self, event):
         if self.busy == False:
             self.code = self.codetext.GetValue()
-            
-            #if len(self.code) > ( self.lastlenght + 10 ):
-            #    self.ReloadHighlight()
-            #lastlenght = len(self.code)
                 
             ip = self.codetext.GetInsertionPoint()
-            # autotab
+            
+            # TODO: Autotab
             if len(self.code) > 1:
                 if self.code[ip-1] == '\n':
                     #obtenemos la linea anterior
                     pass
+
+            if len( self.code ) > 3:
+                if self.code[ip-1] == '\t' and self.code[ip-4:] == '*--\t':
+                    self.code = self.code[:-1] + ('-') * 68
+                    try:
+                        self.codetext.SetValue(self.code)
+                    except:
+                        pass				
+                    self.ReloadHighlight()	
+                    self.codetext.SetInsertionPoint(len(self.code))
+				
         
             #Syntax Highlight
             #obtenemos el inicio de la linea
@@ -304,6 +314,7 @@ class MainWindow(wx.Frame):
         dlg = wx.FileDialog(self, "Abrir archivo de codigo ABAP", os.getcwd(), style=wx.OPEN , wildcard = "ABAP Code (*.abap) | *.abap| Todos los archivos (*.*) | *.*") 
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetPath()
+            self.SetTitle("Zorse - " + self.filename)
             f = open(self.filename, 'r')
             self.code = f.read()
             self.codetext.Clear()
@@ -322,6 +333,7 @@ class MainWindow(wx.Frame):
             dlg = wx.FileDialog(self, "Guardar codigo ABAP", os.getcwd(), style=wx.SAVE | wx.OVERWRITE_PROMPT, wildcard = "ABAP Code (*.abap) | *.abap| Todos los archivos (*.*) | *.*") 
             if dlg.ShowModal() == wx.ID_OK:
                 self.filename = dlg.GetPath()
+                self.SetTitle("Zorse - " + self.filename)
         else:
             f = open(self.filename, 'w')
             c = self.codetext.GetValue().split('\n')
@@ -329,6 +341,7 @@ class MainWindow(wx.Frame):
                 f.write(line+'\n')
             f.close()
             self.t_pr.SetValue(r'' + self.filename)
+            self.SetTitle("Zorse - " + self.filename)
             self.statusbar.SetStatusText('Archivo '+self.filename+' guardado...', 0)
             
         
@@ -348,68 +361,10 @@ class MainWindow(wx.Frame):
     def OnDownload(self, event):
         self.filename = None
         self.busy = True
-        if len(self.servers) == 0:
-            dlg = wx.MessageDialog(None,  'No se han configurado servidores. Desea configurar ahora?', "Configurar servidores",wx.YES_NO | wx.ICON_QUESTION)
-            retCode = dlg.ShowModal()
-            if (retCode == wx.ID_YES):
-                ConfigWindow.showConfigWindow(self)
-        else:
-            program = self.t_pr.GetValue()
-            if len(program) <= 0:
-                Messages.messageError('Escriba el nombre del programa', 'Descargar codigo')
-            else:                         
-                ix = self.choice1.GetCurrentSelection()
-                
-                if ix < 0:
-                    Messages.messageError('Seleccione un servidor origen', 'Descargar codigo')
-                else:
-                    self.code = sap.getCode(self.servers[ix], program)
-                    self.chars = len(self.code)
-                    self.codetext.SetValue(self.code)
-                    
-                    self.ReloadHighlight()
-                    
-                    if self.chars == 0:
-                        Messages.messageInformation('No se obtuvo codigo, verifique que el programa exista', 'Descargar codigo')
         self.busy = False
         event.Skip()
         
     def OnExecute(self, event):
-        if len(self.servers) == 0:
-            dlg = wx.MessageDialog(None,  'No se han configurado servidores. Desea configurar ahora?', "Configurar servidores",wx.YES_NO | wx.ICON_QUESTION)
-            retCode = dlg.ShowModal()
-            if (retCode == wx.ID_YES):
-                ConfigWindow.showConfigWindow(self)
-        else:
-            program = self.t_pr.GetValue()
-            if True:
-                ix = self.choice2.GetCurrentSelection()
-                
-                if ix < 0:
-                    Messages.messageError('Seleccione un servidor destino', 'Ejecutar codigo')
-                else:
-                    file_name = get_tmp_filename()
-        
-                    fi = open(file_name, 'w')
-                    code =  self.codetext.GetValue()
-                    code = code.split('\n')
-                    syntax = sap.syntaxCheck(self.servers[ix], code)
-                    
-                    if syntax != None:
-                        self.outtext.SetValue(syntax)
-                        self.outtext.SetStyle(0, len(syntax), wx.TextAttr("red", "white", self.f))
-                        Messages.messageError('Error en la syntaxis del codigo fuente', 'Ejecutar')
-                    else:                    
-                        for line in code:
-                            fi.write(line+'\n')
-                        fi.close()
-                        result = sap.executeCode(self.servers[ix], file_name[:-5])
-                        os.remove(file_name)
-                        self.outtext.SetValue(result)
-                    
-                        self.outtext.SetStyle(0, len(result), wx.TextAttr("dark gray", "white", self.f))
-                        Messages.messageInformation('Se ha ejecutado el codigo fuente', 'Ejecutar')
-                    
         event.Skip()
         
     def OnSyntaxis(self, event):
