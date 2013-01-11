@@ -10,8 +10,11 @@ def getMenuBar(self, window):
     window = window.upper()
 
     try:
-        mainwindow = (('&Sistema', 
-                    (('&Configurar', 'Configurar servidores', self.OnConfig),  
+        mainwindow = (('&File', 
+                    (('&New', 'Create new file', self.OnNewFile),  
+                     ('&Open', 'Open file', self.OnOpen),
+                     ('&Save', 'Save file', self.OnSave),
+                     ('Save &As...', 'Save file as...', self.OnSaveAs),
                      ('----', None, None),
                      ('&Salir', 'Abandonar Sistema', self.OnCloseMe)  
                     )

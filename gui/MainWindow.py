@@ -4,7 +4,6 @@ Created on 09/04/2012
 @author: hugo.delacruz
 '''
 
-
 import wx
 import os
 import webbrowser
@@ -14,9 +13,11 @@ import Messages
 import Menues
 import Toolbars
 import Config
+import SelectOpen
 import db
-#import ConfigWindow
+import ConfigWindow
 import AboutWindow
+import random
 
 #-----------------------------------------------------------------------
 #  Funciones
@@ -46,7 +47,7 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, id, title, code = None):
         wx.Frame.__init__(self, parent, id, title,   style = wx.DEFAULT_FRAME_STYLE  )
         self.code = code            
-        
+        self.saved = True 
         menuBar = Menues.getMenuBar(self, 'mainwindow')
 
         self.SetMenuBar(menuBar)
@@ -63,23 +64,15 @@ class MainWindow(wx.Frame):
 
         #Panel
         
-        panel = wx.Panel(self, -1)
-        servers = []
-        self.servers = db.getServers()
+        self.panel = wx.Panel(self, -1)
+        self.panel.SetBackgroundColour("aquamarine")
+
+        # Navigation
+        self.CreateTree("New Project")
         
-        l_pr = wx.StaticText(panel, -1, "Programa:", (15, 20))
-        l_so = wx.StaticText(panel, -1, "Servidor Origen:", pos=(15, 55))
+        tree = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 
-        l_sd = wx.StaticText(panel, -1, "Servidor Destino:", pos=(15, 85))
-
-        self.t_pr  = wx.TextCtrl(panel,-1, "", pos=(100, 20),  size=(200, -1))
-        self.t_pr.SetInsertionPoint(0)
-        
-        for server in self.servers:
-            servers.append(server[0])
-
-        self.choice1 = wx.Choice(panel, -1, pos=(120, 50), choices=servers)
-        self.choice2 = wx.Choice(panel, -1, pos=(120, 80), choices=servers)
+        #self.AddTreeNodes(root, tree)
 
         self.codetext = wx.TextCtrl(self, -1, "",  style=wx.TE_MULTILINE|wx.TE_RICH2 | wx.TE_PROCESS_ENTER)
         self.codetext.SetInsertionPoint(0)
@@ -106,11 +99,52 @@ class MainWindow(wx.Frame):
         box2.Add(self.outtext, 1, flag=wx.EXPAND)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        #box.Add(panel, 0, wx.EXPAND)
+        box.Add(self.panel, 0, wx.EXPAND)
         box.Add(box2, 1, wx.EXPAND)
         
         self.SetSizer(box)
-        
+
+        self.lastpath = os.getcwd()
+
+    def CreateTree(self, name):
+        il = wx.ImageList(16,16)
+
+        self.fldridx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, (16, 16)))
+        self.fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16)))
+        self.fileidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_EXECUTABLE_FILE, wx.ART_OTHER, (16, 16)))
+
+        self.tree = wx.TreeCtrl(self.panel, size=(250, 100), style=wx.TR_DEFAULT_STYLE )
+        self.tree.SetBackgroundColour("cadet blue")
+
+        treeSizer = wx.BoxSizer(wx.VERTICAL)
+        treeSizer.Add(self.tree, 1, wx.EXPAND)
+        self.panel.SetSizer(treeSizer)
+
+        self.tree.AssignImageList(il)
+ 
+        root = self.tree.AddRoot(name)
+        self.tree.SetItemImage(root, self.fldridx, wx.TreeItemIcon_Normal)
+        self.tree.SetItemImage(root, self.fldropenidx, wx.TreeItemIcon_Expanded)
+        self.tree.SetItemPyData(root, None)
+
+    def ChangeRootName(self, name):
+        root = self.tree.GetRootItem()
+        self.tree.SetItemText(root, name)
+
+    def AddTreeNodes(self, parentItem, items):
+        for item in items:
+            if type(item) == str:
+                newItem = self.tree.AppendItem(parentItem, item)
+                self.tree.SetItemPyData(newItem, None)
+                self.tree.SetItemImage(newItem, self.fileidx, wx.TreeItemIcon_Normal)
+            else:
+                newItem = self.tree.AppendItem(parentItem, item[0])
+                self.tree.SetItemPyData(newItem, None)
+                self.tree.SetItemImage(newItem, self.fldridx, wx.TreeItemIcon_Normal)
+                self.tree.SetItemImage(newItem, self.fldropenidx, wx.TreeItemIcon_Expanded)
+
+                self.AddTreeNodes(newItem, item[1])
+
     def SyntaxHighlight(self, start, end):
         self.codetext.SetStyle(start, end, wx.TextAttr("black", "white", self.f))
         
@@ -125,7 +159,7 @@ class MainWindow(wx.Frame):
             ix = self.code[start:end].upper().find(keyword.upper())
             if ix >=0:
                 if ix == 0 or self.code[start+ix-1] in [' ', '\t']:
-                    self.codetext.SetStyle(ix+start, ix + start + len(keyword), wx.TextAttr("orange", "white", self.f3))
+                    self.codetext.SetStyle(ix+start, ix + start + len(keyword), wx.TextAttr("blue", "white", self.f3))
                     
         for number in numbers:
             ix = self.code[start:end].find(number)
@@ -142,7 +176,7 @@ class MainWindow(wx.Frame):
             if ix>=0:
                 iy = self.code[start+ix+1:end].find("'")
                 if iy>=0:
-                    self.codetext.SetStyle(start+ix, start+ix+iy+2, wx.TextAttr("blue", "white", self.f))
+                    self.codetext.SetStyle(start+ix, start+ix+iy+2, wx.TextAttr("blue violet", "white", self.f))
                     start += ix + iy + 2
                     
                     st.append((stmp+ix,stmp+ix+iy+1))
@@ -218,18 +252,19 @@ class MainWindow(wx.Frame):
                 
     def OnText(self, event):
         if self.busy == False:
+            if self.saved:
+                self.SetTitle(self.GetTitle()+'[+]')
             self.code = self.codetext.GetValue()
+            self.saved = False
                 
             ip = self.codetext.GetInsertionPoint()
             
             # TODO: Autotab
-            if len(self.code) > 1:
-                if self.code[ip-1] == '\n':
-                    #obtenemos la linea anterior
-                    pass
-
-            if len( self.code ) > 3:
-                if self.code[ip-1] == '\t' and self.code[ip-4:] == '*--\t':
+                
+            if len( self.code ) >= 4:
+                #if self.code[ip-1] == '-'  and self.code[ip-4:] == '\n*--':
+                   
+                if self.code[ip-1] == '\t' and ( self.code[ip-5:] == '\n*--\t' or len(self.code) == 4 ):
                     self.code = self.code[:-1] + ('-') * 68
                     try:
                         self.codetext.SetValue(self.code)
@@ -306,12 +341,19 @@ class MainWindow(wx.Frame):
         event.Skip()
         
     def OnNewFile(self, event):
+        if not self.saved:
+            res = Messages.messageChoice("Archivo no ha sido guardado, Desea guardar?", 'Archivo sin guardar')
+            if res == wx.ID_OK:
+                OnSave(self, event)
         self.codetext.Clear()
+        self.filename = None
+        self.SetTitle('Zorse - Untitled')
         event.Skip()
         
     def OnOpen(self, event):
         self.busy = True
-        dlg = wx.FileDialog(self, "Abrir archivo de codigo ABAP", os.getcwd(), style=wx.OPEN , wildcard = "ABAP Code (*.abap) | *.abap| Todos los archivos (*.*) | *.*") 
+        
+        dlg = wx.FileDialog(self, "Abrir archivo de codigo ABAP", self.lastpath, style=wx.OPEN , wildcard = "ABAP Code (*.abap) | *.abap| Todos los archivos (*.*) | *.*") 
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetPath()
             self.SetTitle("Zorse - " + self.filename)
@@ -322,11 +364,13 @@ class MainWindow(wx.Frame):
             f.close()
             
             self.ReloadHighlight()
-            
-            
-            
-            self.t_pr.SetValue(r'' + self.filename)
+            #self.t_pr.SetValue(r'' + self.filename)
+            #self.CreateTree(self.filename)
+            self.ChangeRootName(self.filename)
         self.busy = False
+
+    def OnSaveAs(self, event):
+        event.skip()
 
     def OnSave(self, event):
         if self.filename == None:
@@ -334,15 +378,18 @@ class MainWindow(wx.Frame):
             if dlg.ShowModal() == wx.ID_OK:
                 self.filename = dlg.GetPath()
                 self.SetTitle("Zorse - " + self.filename)
+                self.saved = True
         else:
             f = open(self.filename, 'w')
             c = self.codetext.GetValue().split('\n')
             for line in c:
                 f.write(line+'\n')
             f.close()
-            self.t_pr.SetValue(r'' + self.filename)
+            #self.t_pr.SetValue(r'' + self.filename)
             self.SetTitle("Zorse - " + self.filename)
             self.statusbar.SetStatusText('Archivo '+self.filename+' guardado...', 0)
+            self.saved = True
+            self.ReloadHighlight()
             
         
         
@@ -374,7 +421,7 @@ class MainWindow(wx.Frame):
             if (retCode == wx.ID_YES):
                 ConfigWindow.showConfigWindow(self)
         else:
-            program = self.t_pr.GetValue()
+            #program = self.t_pr.GetValue()
             if True:
                 ix = self.choice2.GetCurrentSelection()
                 

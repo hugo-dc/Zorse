@@ -20,11 +20,12 @@ def getToolbar(self, toolbar, window):
 		mainwindow = ( 
 	                 ('Nuevo', 'Crear nuevo codigo fuente ABAP', Config.IMG_PATH + 'newfile.png', self.OnNewFile),
                      ('Abrir', 'Abrir archivo de codigo fuente ABAP', Config.IMG_PATH + 'fileopen.png', self.OnOpen),
+ 				     ('Obtener codigo fuente', 'Descarga codigo  fuente ABAP del servidor origen', Config.IMG_PATH+'download.png', self.OnDownload), 
                      ('Guardar', 'Guarda codigo en disco duro', Config.IMG_PATH + 'save.png', self.OnSave),
                      ('Comentar', 'Comenta codigo seleccionado', Config.IMG_PATH + 'comment.png', self.OnComment),
                      #('Verificar syntaxis', 'Verifica que el codigo fuente este correcto', Config.IMG_PATH + 'syntaxis.png', self.OnSyntaxis),
                      SEPARATOR,
- 				     ('Obtener codigo fuente', 'Descarga codigo  fuente ABAP del servidor origen', Config.IMG_PATH+'download.png', self.OnDownload), 
+
                      ('Ejecutar codigo', 'Ejecuta codigo fuente ABAP en el servidor destino', Config.IMG_PATH+ 'execute.png', self.OnExecute),
                      #('Configurar', 'Configuracion de servidores', Config.IMG_PATH + 'configure.png', self.OnConfig),
                      SEPARATOR,
