@@ -13,11 +13,12 @@ import Messages
 import Menues
 import Toolbars
 import Config
-import SelectOpen
 import db
 import ConfigWindow
 import AboutWindow
+import Download
 import random
+
 
 #-----------------------------------------------------------------------
 #  Funciones
@@ -44,6 +45,7 @@ class MainWindow(wx.Frame):
     code = None
     parameters = {}
     busy = False
+    local = False
     def __init__(self, parent, id, title, code = None):
         wx.Frame.__init__(self, parent, id, title,   style = wx.DEFAULT_FRAME_STYLE  )
         self.code = code            
@@ -74,7 +76,7 @@ class MainWindow(wx.Frame):
 
         #self.AddTreeNodes(root, tree)
 
-        self.codetext = wx.TextCtrl(self, -1, "",  style=wx.TE_MULTILINE|wx.TE_RICH2 | wx.TE_PROCESS_ENTER)
+        self.codetext = wx.TextCtrl(self, -1, "",  style=wx.TE_MULTILINE|wx.TE_RICH2 | wx.TE_PROCESS_ENTER | wx.HSCROLL)
         self.codetext.SetInsertionPoint(0)
         
         if code != None:
@@ -106,6 +108,9 @@ class MainWindow(wx.Frame):
 
         self.lastpath = os.getcwd()
 
+        self.servers = db.getServers()
+        self.local = True
+
     def CreateTree(self, name):
         il = wx.ImageList(16,16)
 
@@ -127,8 +132,25 @@ class MainWindow(wx.Frame):
         self.tree.SetItemImage(root, self.fldropenidx, wx.TreeItemIcon_Expanded)
         self.tree.SetItemPyData(root, None)
 
-    def ChangeRootName(self, name):
+    def ChangeRootName(self, name, force = False):
         root = self.tree.GetRootItem()
+        line = ""
+        start = 0
+
+        if not force:
+            while line == "":
+                first_nl = self.code[start].find('\n')
+                line = self.code[start:first_nl]
+                line = line.strip()
+                words = line.split()
+                if words[0] == 'REPORT':
+                    name = words[1].replace('.', '').upper()
+                if words[0] == 'FUNCTION':
+                    name = words[1].replace('.', '').upper()
+                if words[0] == 'INCLUDE':
+                    name = words[1].replace('.', '').upper()
+                start = first_nl    
+
         self.tree.SetItemText(root, name)
 
     def AddTreeNodes(self, parentItem, items):
@@ -208,47 +230,20 @@ class MainWindow(wx.Frame):
         
             
     def ReloadHighlight(self, s=0, e=-1):
-        if e < 0:
-            e = len(self.code)
+        if not self.busy: 
+            self.busy = True
+            if e < 0:
+                e = len(self.code)
             
-        lines_of_code = self.code[s:e].split('\n')
-        start = 0
-        tot_l = 0
+            lines_of_code = self.code[s:e].split('\n')
+            start = 0
+            tot_l = 0
             
-        for line in lines_of_code:
-            tot_l += len(line) + 1
-            self.SyntaxHighlight(start+s, s+tot_l+1)
-            start = tot_l
-            
-
-    def ParametersSearch(self):
-        start = 0
-        while start < len(self.code):
-            
-            ix = self.code[start:].find('[R:')
-
-            if ix >= 0:
-                print '2', start
-                iy = self.code[start:].find(']')
-                #start += iy
-                if iy >= 0:
-                    print '3', start+ix+3, start+iy, self.code[start+ix+3:start+iy]
-                    if not self.code[start+ix+3:start+iy] in self.parameters.keys():
-                        self.parameters[self.code[start+ix+3:start+iy]] = ''
-                        i = 0
-                        for key in self.parameters.keys():
-                            if i == 0:
-                                pos = self.list.InsertStringItem(len(self.parameters), key)
-                            else:
-                                self.list.SetStringItem(pos, len(self.parameters)+i, key)
-                            i +=1
-                    start += ix + iy
-                else:
-                    break
-            else:
-                break
-                
-          
+            for line in lines_of_code:
+                tot_l += len(line) + 1
+                self.SyntaxHighlight(start+s, s+tot_l+1)
+                start = tot_l
+            self.busy = False    
                 
     def OnText(self, event):
         if self.busy == False:
@@ -291,7 +286,7 @@ class MainWindow(wx.Frame):
                     ip += ix 
             
             self.SyntaxHighlight(enter, ip)
-            self.ParametersSearch()      
+            #self.ParametersSearch()      
 
         event.Skip()
         
@@ -347,11 +342,13 @@ class MainWindow(wx.Frame):
                 OnSave(self, event)
         self.codetext.Clear()
         self.filename = None
+        self.tree.SetBackgroundColour('cadet blue')
         self.SetTitle('Zorse - Untitled')
         event.Skip()
         
     def OnOpen(self, event):
         self.busy = True
+        self.local = True
         
         dlg = wx.FileDialog(self, "Abrir archivo de codigo ABAP", self.lastpath, style=wx.OPEN , wildcard = "ABAP Code (*.abap) | *.abap| Todos los archivos (*.*) | *.*") 
         if dlg.ShowModal() == wx.ID_OK:
@@ -362,10 +359,11 @@ class MainWindow(wx.Frame):
             self.codetext.Clear()
             self.codetext.SetValue(self.code)
             f.close()
-            
+            self.busy = False            
             self.ReloadHighlight()
             #self.t_pr.SetValue(r'' + self.filename)
             #self.CreateTree(self.filename)
+            self.local = True
             self.ChangeRootName(self.filename)
         self.busy = False
 
@@ -408,6 +406,13 @@ class MainWindow(wx.Frame):
     def OnDownload(self, event):
         self.filename = None
         self.busy = True
+        if len(self.servers) == 0:
+            rc = Messages.messageChoice("SAP Server configuration not found. Do you want to configure?", "Server configuration")
+            if rc == wx.ID_YES :
+                ConfigWindow.showConfigWindow(self)
+
+        else:        
+            Download.Show(self)
         self.busy = False
         event.Skip()
         

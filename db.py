@@ -31,6 +31,9 @@ def createDatabase():
     if not os.path.exists(INSTALL_PATH + 'cfg.dll'): 
         query = """ CREATE TABLE Servers(id TEXT, name TEXT, ip TEXT, sysnr TEXT, client TEXT, user TEXT, passwd TEXT, PRIMARY KEY(id)) """
         executeQuery(query, 'I', False)
+
+        query = "CTREATE TABLE Config(id TEXT, lastpath TEXT, PRIMARY KEY(id) )"
+        executeQuery(query, 'I', False)
         
         #query = """ CREATE TABLE Images(id text, name text, 
 

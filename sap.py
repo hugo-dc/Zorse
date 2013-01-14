@@ -121,16 +121,11 @@ REPORT ztest.
 
 DATA:
       prog(30) TYPE c,
-      wtab(250),
+      wtab(1000),
 
       itab LIKE wtab OCCURS 0,
-      half1 TYPE string,
-      half2 TYPE string,
-
       len TYPE i,
-      max TYPE i VALUE 72,
-      found VALUE ' ',
-      ix TYPE i.
+      i TYPE i.
 
 prog = '[R:REPORT]'.
 
@@ -139,29 +134,20 @@ READ REPORT prog INTO itab.
 IF sy-subrc = 0.
   LOOP AT itab INTO wtab.
     len = STRLEN( wtab ).
-    IF len > max.
-      IF wtab CA ' '.
-        ix = max.
-        WHILE found IS INITIAL.
-          ix = ix - 1.
-          IF wtab+ix(1) = ' '.
-            found = 'X'.
-            half1 = wtab+0(ix).
-            max = len - ix.
-            half2 = wtab+ix(max).
-            WRITE:/ half1, / half2.
-          ENDIF.
-          IF ix = 0.
-            EXIT.
-          ENDIF.
 
-        ENDWHILE.
+    i = 0.
+    WHILE i < len.
+      IF wtab+i(1) = space.
+        WRITE:/ '[ZORSE:SPACE]'.
+      ELSE.
+        WRITE:/  wtab+i(1).
       ENDIF.
-    ELSE.
-      WRITE:/ wtab.
-    ENDIF.
+      i = i + 1.
+    ENDWHILE.
+    WRITE:/ '[ZORSE:NEWLINE]'.
   ENDLOOP.
-ENDIF.       
+ENDIF.
+
     """
     z = open('zget_report.abap', 'w')
     z.write(zget_report)
@@ -170,12 +156,19 @@ ENDIF.
 
     result = server.execute_RFC('RUN_ABAP', ['zget_report', report])
 
-    #z = open('zget_report.abap', 'w')
-    #z.close()
     
     code = ""
     for line in result:
-        code += line.rstrip() + '\n'
+        line = line.strip()
+        if line == '[ZORSE:SPACE]':
+            code += ' '
+            continue
+        if line == '[ZORSE:NEWLINE]':
+            code += '\n'
+            continue
+        
+        code += line
+        #code += line.rstrip() + '\n'
         
     os.remove('zget_report.abap')
     return code

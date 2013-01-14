@@ -9,14 +9,15 @@ import Config
 import Images
 
 def getToolbar(self, toolbar, window):
-	SEPARATOR = 1000
+    SEPARATOR = 1000
     
-	mainwindow      = ""
-	newconfigwindow = ""
-	configwindow    = "" 
+    mainwindow      = ""
+    newconfigwindow = ""
+    configwindow    = "" 
+    downloadwindow  = ""
 
-	window = window.upper()
-	if window == 'MAINWINDOW':
+    window = window.upper()
+    if window == 'MAINWINDOW':
 		mainwindow = ( 
 	                 ('Nuevo', 'Crear nuevo codigo fuente ABAP', Config.IMG_PATH + 'newfile.png', self.OnNewFile),
                      ('Abrir', 'Abrir archivo de codigo fuente ABAP', Config.IMG_PATH + 'fileopen.png', self.OnOpen),
@@ -27,12 +28,12 @@ def getToolbar(self, toolbar, window):
                      SEPARATOR,
 
                      ('Ejecutar codigo', 'Ejecuta codigo fuente ABAP en el servidor destino', Config.IMG_PATH+ 'execute.png', self.OnExecute),
-                     #('Configurar', 'Configuracion de servidores', Config.IMG_PATH + 'configure.png', self.OnConfig),
+                     ('Configurar', 'Configuracion de servidores', Config.IMG_PATH + 'configure.png', self.OnConfig),
                      SEPARATOR,
                      ('Ayuda', 'Ayuda en linea de Zorse', Config.IMG_PATH + 'help.png', self.OnHelp)
  					)
                    
-	if window == 'CONFIGWINDOW':
+    if window == 'CONFIGWINDOW':
 		configwindow = ( ('Nuevo', 'Crear nueva configuracion de servidor', Config.IMG_PATH + 'new.png', self.OnNew), 
                      ('Modificar', 'Modificar configuracion de servidor', Config.IMG_PATH + 'modify.png', self.OnModify),
                      ('Eliminar', 'Eliminar configuracion de servidor', Config.IMG_PATH + 'delete.png', self.OnDelete),
@@ -40,20 +41,24 @@ def getToolbar(self, toolbar, window):
                       None
                      )
     
-	if window == 'NEWCONFIGWINDOW':                 
+    if window == 'NEWCONFIGWINDOW':                 
 		newconfigwindow = ( ('Guardar', 'Guarda configuracion', Config.IMG_PATH + 'save.png', self.OnSave), 
                             ('Probar configuracion', 'Probar configuracion', Config.IMG_PATH + 'test_config.png', self.OnTestConfig),
                      None
                     )
+
+    if window == 'DOWNLOADWINDOW':
+        downloadwindow = ( ( 'Download', 'Download ABAP Source Code', Config.IMG_PATH + 'download.png', self.OnDownload), None )
     
-	bars = { 'MAINWINDOW': mainwindow,
+    bars = { 'MAINWINDOW': mainwindow,
              'CONFIGWINDOW': configwindow, 
-             'NEWCONFIGWINDOW': newconfigwindow
+             'NEWCONFIGWINDOW': newconfigwindow,
+             'DOWNLOADWINDOW': downloadwindow
             }
+  
+    bar = bars[window]
    
-	bar = bars[window]
-    
-	for tool in bar:
+    for tool in bar:
 		if tool != None:
 			if tool == SEPARATOR:
 				toolbar.AddSeparator()
@@ -62,4 +67,4 @@ def getToolbar(self, toolbar, window):
 				t = toolbar.AddSimpleTool(wx.NewId(), Images.getImage(self,image), title, stbar)
 				if handler != None:
 					self.Bind(wx.EVT_MENU, handler, t)
-	return toolbar
+    return toolbar
