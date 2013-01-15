@@ -118,23 +118,17 @@ def getCode(server, program):
 
     zget_report = """
 REPORT ztest.
-
 DATA:
       prog(30) TYPE c,
       wtab(1000),
-
       itab LIKE wtab OCCURS 0,
       len TYPE i,
       i TYPE i.
-
 prog = '[R:REPORT]'.
-
 READ REPORT prog INTO itab.
-
 IF sy-subrc = 0.
   LOOP AT itab INTO wtab.
     len = STRLEN( wtab ).
-
     i = 0.
     WHILE i < len.
       IF wtab+i(1) = space.
@@ -147,15 +141,12 @@ IF sy-subrc = 0.
     WRITE:/ '[ZORSE:NEWLINE]'.
   ENDLOOP.
 ENDIF.
-
     """
     z = open('zget_report.abap', 'w')
     z.write(zget_report)
     z.close()
-    
 
     result = server.execute_RFC('RUN_ABAP', ['zget_report', report])
-
     
     code = ""
     for line in result:
@@ -168,12 +159,64 @@ ENDIF.
             continue
         
         code += line
-        #code += line.rstrip() + '\n'
         
     os.remove('zget_report.abap')
     return code
-    
-    
+
+def uploadCode(server, program, abap_code):
+    con_string = getConnString(*server)
+    sap = easysap.SAPInstance()
+    sap.set_config(con_string)
+    abap_code = abap_code.split('\n')
+
+    abap_h = """
+REPORT ZLOAD.
+constants:
+    quote value ''''.
+data:
+	BEGIN OF T_CODE occurs 0,
+		t_line(%s),
+	END OF T_cODE.
+
+"""
+
+    abap_b = ""
+
+    abap_f = """
+INSERT REPORT '%s' FROM T_CODE.
+""" % ( program.upper().strip() ) 
+
+ 
+    max_l = 0
+    for line in abap_code:
+	    if len(line) > max_l:
+		    max_l = len(line)
+
+    abap_h = abap_h % max_l  
+		
+    for line in abap_code:
+    	line = line.replace("'", "''")
+        if len(line) > 70:
+            line = line + ' '
+            blocks = len(line) / 70 + 1
+    	    abap_b += "T_CODE =\n'%s'\n.\n\n" % ( line[0:70] )
+            abap_b += "CONCATENATE\nt_code\n"
+            for i in range(1, blocks+1):
+                nl = line[i*70:(i*70) + 70 ]
+                nl = nl.replace("''", "'\nquote\n'")
+                abap_b += "'%s'\n" % nl 
+            abap_b += "INTO T_CODE. APPEND T_CODE.\n\n" 
+        else:
+            abap_b += "T_CODE\n = \n'%s'.\n APPEND T_CODE.\n\n" % line
+    abap = abap_h + abap_b + abap_f
+
+    abap += '\nwrite:/ sy-subrc.'
+    open('code', 'w').write(abap)
+    result = sap.executeABAP(abap)
+    if result[0].strip() == '0':
+        return True
+    else:
+        return False
     
 
 def testServerConfig(id, name, ip, sysnr, client, user, passwd):
@@ -187,12 +230,9 @@ def testServerConfig(id, name, ip, sysnr, client, user, passwd):
     
     server = easysap.SAPInstance()
     server.set_config('ASHOST='+ip+' SYSNR='+sysnr+' CLIENT='+client+' USER='+user+' PASSWD='+passwd)
-    
-    
     result = server.execute_RFC('RUN_ABAP', ['ztest', None])
     for line in result:
         if line.rstrip() == 'IT WORKS':
             return True
             break
     return False
-    #pass    

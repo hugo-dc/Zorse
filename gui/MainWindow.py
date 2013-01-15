@@ -416,6 +416,19 @@ class MainWindow(wx.Frame):
         self.busy = False
         event.Skip()
         
+    def OnUpload(self, event):
+        if self.local:
+            Messages.messageError('This is not an SAP source code', 'Cannot upload current source code')
+        else:
+            if self.sap_program.strip()[0].lower() not in 'xyz':
+                Messages.messageError('This seems a standard ABAP code!', 'Not a chance!')
+            else:    
+                result = sap.uploadCode(self.sap_server, self.sap_program, self.code)            
+                if result:
+                    Messages.messageInformation('ABAP Code uploaded to SAP Server successfully', 'Upload')
+                else:
+                    Messages.messageError('An error occured while uploading ABAP Code', 'ERROR')
+
     def OnExecute(self, event):
         event.Skip()
         

@@ -58,6 +58,8 @@ class DownloadCode(wx.Frame):
                     Messages.messageInformation('Source Code downloaded successfully!', 'Download')
                     self.parent.local = False
                     self.parent.ChangeRootName(self.params[0].upper(), True)
+                    self.parent.sap_program = self.params[0].upper()
+                    self.parent.sap_server  = self.servers[ix]
                     self.parent.tree.SetBackgroundColour('blue violet')
                     self.Destroy()
                 else:

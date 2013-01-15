@@ -42,7 +42,7 @@ class NewConfigurationWindow(wx.Frame):
         
        
     def OnSave(self, event):
-        message = self.setParams()
+        message = Utils.setParams(self)
             
         if message != None:
             Messages.messageError(message, 'Guardar')
