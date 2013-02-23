@@ -377,17 +377,18 @@ class MainWindow(wx.Frame):
                 self.filename = dlg.GetPath()
                 self.SetTitle("Zorse - " + self.filename)
                 self.saved = True
-        else:
-            f = open(self.filename, 'w')
-            c = self.codetext.GetValue().split('\n')
-            for line in c:
-                f.write(line+'\n')
-            f.close()
-            #self.t_pr.SetValue(r'' + self.filename)
-            self.SetTitle("Zorse - " + self.filename)
-            self.statusbar.SetStatusText('Archivo '+self.filename+' guardado...', 0)
-            self.saved = True
-            self.ReloadHighlight()
+            else: 
+                return
+        
+        f = open(self.filename, 'w')
+        c = self.codetext.GetValue().split('\n')
+        for line in c:
+            f.write(line+'\n')
+        f.close()
+        self.SetTitle("Zorse - " + self.filename)
+        self.statusbar.SetStatusText('Archivo '+self.filename+' guardado...', 0)
+        self.saved = True
+        self.ReloadHighlight()
             
         
         

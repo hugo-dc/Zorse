@@ -18,7 +18,7 @@ class DownloadCode(wx.Frame):
     fields = []
     def __init__(self, parent, id, title):
         self.parent = parent
-        wx.Frame.__init__(self, parent, id, title, style = wx.DEFAULT_FRAME_STYLE, size=(250, 190) )
+        wx.Frame.__init__(self, parent, id, title, style = wx.DEFAULT_FRAME_STYLE & ~ (  wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MINIMIZE_BOX ) , size=(250, 190) )
         panel = wx.Panel(self, -1)
 
         self.CreateStatusBar()
@@ -61,6 +61,7 @@ class DownloadCode(wx.Frame):
                     self.parent.sap_program = self.params[0].upper()
                     self.parent.sap_server  = self.servers[ix]
                     self.parent.tree.SetBackgroundColour('blue violet')
+                    self.parent.SetTitle('Zorse - SAP:\\' + self.params[0].upper())
                     self.Destroy()
                 else:
                     Messages.messageError('Error downloading program', 'Error downloading code')               

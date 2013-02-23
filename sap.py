@@ -114,54 +114,8 @@ def getCode(server, program):
     server = easysap.SAPInstance()
     server.set_config(con_string)
     
-    report = [ ['REPORT', program]]
-
-    zget_report = """
-REPORT ztest.
-DATA:
-      prog(30) TYPE c,
-      wtab(1000),
-      itab LIKE wtab OCCURS 0,
-      len TYPE i,
-      i TYPE i.
-prog = '[R:REPORT]'.
-READ REPORT prog INTO itab.
-IF sy-subrc = 0.
-  LOOP AT itab INTO wtab.
-    len = STRLEN( wtab ).
-    i = 0.
-    WHILE i < len.
-      IF wtab+i(1) = space.
-        WRITE:/ '[ZORSE:SPACE]'.
-      ELSE.
-        WRITE:/  wtab+i(1).
-      ENDIF.
-      i = i + 1.
-    ENDWHILE.
-    WRITE:/ '[ZORSE:NEWLINE]'.
-  ENDLOOP.
-ENDIF.
-    """
-    z = open('zget_report.abap', 'w')
-    z.write(zget_report)
-    z.close()
-
-    result = server.execute_RFC('RUN_ABAP', ['zget_report', report])
+    return server.download_abap(program)
     
-    code = ""
-    for line in result:
-        line = line.strip()
-        if line == '[ZORSE:SPACE]':
-            code += ' '
-            continue
-        if line == '[ZORSE:NEWLINE]':
-            code += '\n'
-            continue
-        
-        code += line
-        
-    os.remove('zget_report.abap')
-    return code
 
 def uploadCode(server, program, abap_code):
     con_string = getConnString(*server)
