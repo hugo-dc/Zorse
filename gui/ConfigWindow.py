@@ -81,9 +81,6 @@ class ConfigWindow(wx.Frame):
         box.Add(panel1, 1, wx.EXPAND | wx.ALL)
         #box.Add(panel2, 0, wx.EXPAND | wx.ALL)
         
-        
-                    
-        
     def OnItemSelected(self, event):
         self.selected = event.GetItem()
         self.sel_text = event.GetItem().GetText()

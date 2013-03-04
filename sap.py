@@ -102,7 +102,8 @@ def executeCode(server, program):
     server = easysap.SAPInstance()
     server.set_config(con_string)
     
-    result = server.execute_RFC('RUN_ABAP', [program, None])
+    #result = server.execute_RFC('RUN_ABAP', [program, None])
+    result = server.executeABAP(program)
     retstr = ""
     for line in result:
         retstr += line + '\n'

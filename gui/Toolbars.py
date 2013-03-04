@@ -15,6 +15,7 @@ def getToolbar(self, toolbar, window):
     newconfigwindow = ""
     configwindow    = "" 
     downloadwindow  = ""
+    selectserver    = ""
 
     window = window.upper()
     if window == 'MAINWINDOW':
@@ -50,11 +51,15 @@ def getToolbar(self, toolbar, window):
 
     if window == 'DOWNLOADWINDOW':
         downloadwindow = ( ( 'Download', 'Download ABAP Source Code', Config.IMG_PATH + 'download.png', self.OnDownload), None )
+
+    if window == 'SELECTSERVER':
+        selectserver = ( ( 'Select Server', 'Execute ABAP Code', Config.IMG_PATH + 'execute.png', self.OnExecute), None )
     
     bars = { 'MAINWINDOW': mainwindow,
              'CONFIGWINDOW': configwindow, 
              'NEWCONFIGWINDOW': newconfigwindow,
-             'DOWNLOADWINDOW': downloadwindow
+             'DOWNLOADWINDOW': downloadwindow,
+             'SELECTSERVER': selectserver
             }
   
     bar = bars[window]

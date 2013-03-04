@@ -17,6 +17,7 @@ import db
 import ConfigWindow
 import AboutWindow
 import Download
+import SelectServer
 import random
 
 
@@ -38,14 +39,15 @@ def get_tmp_filename():
 # Main Window
 class MainWindow(wx.Frame):
     lastlenght = 0
-    download = False
-    chars = 0
-    filename = None
-    highlight = True
-    code = None
+    download   = False
+    chars      = 0
+    filename   = None
+    highlight  = True
+    code       = None
     parameters = {}
-    busy = False
-    local = False
+    busy       = False
+    local      = False
+
     def __init__(self, parent, id, title, code = None):
         wx.Frame.__init__(self, parent, id, title,   style = wx.DEFAULT_FRAME_STYLE  )
         self.code = code            
@@ -65,7 +67,6 @@ class MainWindow(wx.Frame):
         self.f3 = wx.Font(12, wx.MODERN, wx.NORMAL, wx.BOLD)
 
         #Panel
-        
         self.panel = wx.Panel(self, -1)
         self.panel.SetBackgroundColour("aquamarine")
 
@@ -74,8 +75,6 @@ class MainWindow(wx.Frame):
         
         tree = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 
-        #self.AddTreeNodes(root, tree)
-
         self.codetext = wx.TextCtrl(self, -1, "",  style=wx.TE_MULTILINE|wx.TE_RICH2 | wx.TE_PROCESS_ENTER | wx.HSCROLL)
         self.codetext.SetInsertionPoint(0)
         
@@ -83,7 +82,6 @@ class MainWindow(wx.Frame):
             # viene un codigo por parametro
             self.codetext.SetValue(self.code)
             self.ReloadHighlight()
-        
         
         panel2 = wx.Panel(self, -1)
         l_rce = wx.StaticText(panel2, -1, "Resultado:", (0, 0))
@@ -431,6 +429,7 @@ class MainWindow(wx.Frame):
                     Messages.messageError('An error occured while uploading ABAP Code', 'ERROR')
 
     def OnExecute(self, event):
+        SelectServer.showSelectServer(self)
         event.Skip()
         
     def OnSyntaxis(self, event):
